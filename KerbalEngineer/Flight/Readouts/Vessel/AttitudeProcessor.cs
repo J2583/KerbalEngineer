@@ -19,6 +19,7 @@
 
 namespace KerbalEngineer.Flight.Readouts.Vessel
 {
+    using KerbalEngineer.Helpers;
     #region Using Directives
 
     using System;
@@ -34,11 +35,8 @@ namespace KerbalEngineer.Flight.Readouts.Vessel
 
         private static readonly AttitudeProcessor instance = new AttitudeProcessor();
 
-        private Vector3 centreOfMass = Vector3.zero;
-
         private double heading;
         private double headingRate;
-        private Vector3 north = Vector3.zero;
         private double pitch;
         private double pitchRate;
         private double previousHeading;
@@ -47,11 +45,12 @@ namespace KerbalEngineer.Flight.Readouts.Vessel
         private double roll;
         private double rollRate;
         private Quaternion surfaceRotation;
-        private Vector3 up = Vector3.zero;
 
         #endregion
 
         #region Properties
+        
+        public static double Course { get; private set; }
 
         public static double Heading
         {
@@ -116,13 +115,14 @@ namespace KerbalEngineer.Flight.Readouts.Vessel
             this.previousRoll = this.roll;
 
             // This code was derived from MechJeb2's implementation for getting the vessel's surface relative rotation.
-            this.heading = this.surfaceRotation.eulerAngles.y;
-            this.pitch = this.surfaceRotation.eulerAngles.x > 180.0f
-                ? 360.0f - this.surfaceRotation.eulerAngles.x
-                : -this.surfaceRotation.eulerAngles.x;
-            this.roll = this.surfaceRotation.eulerAngles.z > 180.0f
-                ? 360.0f - this.surfaceRotation.eulerAngles.z
-                : -this.surfaceRotation.eulerAngles.z;
+            var surfRotEuler = this.surfaceRotation.eulerAngles;
+            this.heading = surfRotEuler.y;
+            this.pitch = surfRotEuler.x > 180.0f
+                ? 360.0f - surfRotEuler.x
+                : -surfRotEuler.x;
+            this.roll = surfRotEuler.z > 180.0f
+                ? 360.0f - surfRotEuler.z
+                : -surfRotEuler.z;
 
             this.headingRate = (this.heading - this.previousHeading) / TimeWarp.fixedDeltaTime;
             this.pitchRate   = (this.pitch - this.previousPitch) / TimeWarp.fixedDeltaTime;
@@ -134,13 +134,22 @@ namespace KerbalEngineer.Flight.Readouts.Vessel
             var surfaceVelocity = vessel.obt_velocity - vessel.mainBody.getRFrmVel(vessel.CoMD);
             var surfaceSpeed = surfaceVelocity.magnitude;
             
-            if (surfaceSpeed < 0.05) GlideslopeAngle = DisplacementAngle = AttackAngle = SideslipAngle = INVALID_ANGLE;
+            if (surfaceSpeed < 0.05) Course = GlideslopeAngle = DisplacementAngle = AttackAngle = SideslipAngle = INVALID_ANGLE;
             else {
                 Vector3d normSurfVel = surfaceVelocity.normalized;
+                var up = (vessel.CoMD - vessel.mainBody.position).normalized;
+                var north = GetNorth(vessel.CoMD, up, vessel.mainBody);
+                var eastMaybe = Vector3.Cross(up, north);
+
+                var srfProjNorm = Vector3.ProjectOnPlane(normSurfVel, up).normalized;
+                double tempCourse = UtilMath.Rad2Deg * Math.Atan2(Clamp(Vector3.Dot(eastMaybe, srfProjNorm), -1.0, 1.0),
+                                                                  Clamp(Vector3.Dot(north, srfProjNorm), -1.0, 1.0));
+                if (tempCourse < 0) tempCourse += 360.0;
+                Course = double.IsNaN(tempCourse) ? INVALID_ANGLE : tempCourse;
 
                 //Vertical velocity angle relative to the planet's surface
                 double tempGS = UtilMath.Rad2Deg *
-                                Math.Asin(Mathf.Clamp(Vector3.Dot(this.up, normSurfVel), -1, 1));
+                                Math.Asin(Mathf.Clamp(Vector3.Dot(up, normSurfVel), -1, 1));
                 GlideslopeAngle = double.IsNaN(tempGS) ? INVALID_ANGLE : tempGS;
 
                 // Displacement Angle, angle between surface velocity and the ship-nose vector (KSP "up" vector) -- ignores roll of the craft (0 to 180 degrees)
@@ -149,27 +158,30 @@ namespace KerbalEngineer.Flight.Readouts.Vessel
                 DisplacementAngle = double.IsNaN(tempAoD) ? INVALID_ANGLE : tempAoD;
 
                 // Angle of Attack, angle between surface velocity and the ship-nose vector (KSP "up" vector) in the plane that has no ship-right/left in it (-180 to +180 degrees)
-                var srfProj = Vector3.ProjectOnPlane(normSurfVel, vessel.ReferenceTransform.right);
-                double tempAoA = UtilMath.Rad2Deg * Math.Atan2(Vector3.Dot(srfProj.normalized, vessel.ReferenceTransform.forward),
-                                                               Vector3.Dot(srfProj.normalized, vessel.ReferenceTransform.up));
+                srfProjNorm = Vector3.ProjectOnPlane(normSurfVel, vessel.ReferenceTransform.right).normalized;
+                double tempAoA = UtilMath.Rad2Deg * Math.Atan2(Vector3.Dot(srfProjNorm, vessel.ReferenceTransform.forward),
+                                                               Vector3.Dot(srfProjNorm, vessel.ReferenceTransform.up));
                 AttackAngle = double.IsNaN(tempAoA) ? INVALID_ANGLE : tempAoA;
 
                 // Angle of Sideslip, angle between surface velocity and the ship-nose vector (KSP "up" vector) in the plane that has no ship-top/bottom in it (KSP "forward"/"back"; -180 to +180 degrees)
-                srfProj = Vector3.ProjectOnPlane(normSurfVel, vessel.ReferenceTransform.forward);
-                double tempAoS = UtilMath.Rad2Deg * Math.Atan2(Vector3.Dot(srfProj.normalized, vessel.ReferenceTransform.right),
-                                                               Vector3.Dot(srfProj.normalized, vessel.ReferenceTransform.up));
+                srfProjNorm = Vector3.ProjectOnPlane(normSurfVel, vessel.ReferenceTransform.forward).normalized;
+                double tempAoS = UtilMath.Rad2Deg * Math.Atan2(Vector3.Dot(srfProjNorm, vessel.ReferenceTransform.right),
+                                                               Vector3.Dot(srfProjNorm, vessel.ReferenceTransform.up));
                 SideslipAngle = double.IsNaN(tempAoA) ? INVALID_ANGLE : tempAoS;
             }
         }
 
-        private Quaternion GetSurfaceRotation(global::Vessel vessel)
-        {
-            // This code was derived from MechJeb2's implementation for getting the vessel's surface relative rotation.
-            this.centreOfMass = vessel.CoMD;
-            this.up = (this.centreOfMass - vessel.mainBody.position).normalized;
-            this.north = Vector3.ProjectOnPlane((vessel.mainBody.position + vessel.mainBody.transform.up * (float)vessel.mainBody.Radius) - this.centreOfMass, this.up).normalized;
+        private Quaternion GetSurfaceRotation(global::Vessel vessel) { return GetSurfaceRotation(vessel.CoMD, vessel.transform.rotation, vessel.mainBody); }
 
-            return Quaternion.Inverse(Quaternion.Euler(90.0f, 0.0f, 0.0f) * Quaternion.Inverse(vessel.transform.rotation) * Quaternion.LookRotation(this.north, this.up));
+        private Quaternion GetSurfaceRotation(Vector3d position, Quaternion rotation, CelestialBody mainBody)
+        {
+            // This code and GetNorth were derived from MechJeb2's implementation for getting the vessel's surface relative rotation.
+            var up = (position - mainBody.position).normalized;
+            return Quaternion.Inverse(Quaternion.Euler(90.0f, 0.0f, 0.0f) * Quaternion.Inverse(rotation) * Quaternion.LookRotation(GetNorth(position, up, mainBody), up));
+        }
+
+        private Vector3d GetNorth(Vector3 position, Vector3d up, CelestialBody mainBody) {
+            return Vector3.ProjectOnPlane((mainBody.position + mainBody.transform.up * (float)mainBody.Radius) - position, up).normalized;
         }
 
         //Not sure why this is in Mathf but not Math...

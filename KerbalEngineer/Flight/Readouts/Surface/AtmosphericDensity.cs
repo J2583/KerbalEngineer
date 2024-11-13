@@ -22,22 +22,21 @@ namespace KerbalEngineer.Flight.Readouts.Surface
     using Extensions;
     using Sections;
 
-    public class AtmosphericPressure : ReadoutModule
+    public class AtmosphericDensity : ReadoutModule
     {
-        public AtmosphericPressure()
+        public AtmosphericDensity()
         {
-            Name = "Atmos. Pressure";
-            ShortName = "Pressure";
+            Name = "Atmos. Density";
+            ShortName = "Density";
             Category = ReadoutCategory.GetCategory("Surface");
-            HelpString = "Displays the current atmospheric pressure.";
+            HelpString = "Displays the current atmospheric density.";
             IsDefault = false;
         }
 
         public override void Draw(Unity.Flight.ISectionModule section)
         {
-            if (AtmosphericProcessor.ShowDetails)
-            {
-                DrawLine(AtmosphericProcessor.StaticPressure.ToPressure(section.IsHud ? HudDecimalPlaces : DecimalPlaces), section);
+            if (AtmosphericProcessor.ShowDetails) {
+                DrawLine(AtmosphericProcessor.AirDensity.ToDensity(section.IsHud ? HudDecimalPlaces : DecimalPlaces), section);
             }
         }
 

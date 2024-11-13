@@ -133,6 +133,9 @@
     <Compile Include="Flight\Readouts\Rendezvous\TimeToRelativeDescendingNode.cs" />
     <Compile Include="Flight\Readouts\Rendezvous\TimeToRelativeAscendingNode.cs" />
     <Compile Include="Flight\Readouts\Rendezvous\TimeToTransferAngle.cs" />
+    <Compile Include="Flight\Readouts\Surface\AtmosphericDensity.cs" />
+    <Compile Include="Flight\Readouts\Surface\AtmosphericDensityKerbinPercent.cs" />
+    <Compile Include="Flight\Readouts\Surface\AtmosphericDensityPercent.cs" />
     <Compile Include="Flight\Readouts\Surface\BearingToWaypoint.cs" />
     <Compile Include="Flight\Readouts\Surface\DynamicPressure.cs" />
     <Compile Include="Flight\Readouts\Surface\AtmosphericPressure.cs" />
@@ -162,6 +165,7 @@
     <Compile Include="Flight\Readouts\Vessel\AngleOfAttack.cs" />
     <Compile Include="Flight\Readouts\Vessel\AngleOfDisplacement.cs" />
     <Compile Include="Flight\Readouts\Vessel\AngleOfSideslip.cs" />
+    <Compile Include="Flight\Readouts\Vessel\Course.cs" />
     <Compile Include="Flight\Readouts\Vessel\ElectricCharge.cs" />
     <Compile Include="Flight\Readouts\Vessel\Glideslope.cs" />
     <Compile Include="Flight\Readouts\Vessel\Gravity.cs" />
@@ -305,7 +309,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System">
@@ -317,43 +321,43 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AssetBundleModule">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
-      <HintPath>$(KSP_DEV)\English\KSP_x64_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>$(KSP_DEV)\KSP_x64_Data\Managed\UnityEngine.UIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -379,7 +383,7 @@
         PostBuildMacros;
       </PostBuildEventDependsOn>
     <PostBuildEvent>xcopy "$(SolutionDir)AssetBundles\*" "$(SolutionDir)Output\KerbalEngineer\AssetBundles\*" /E /Y
-xcopy "$(SolutionDir)Output\*" "$(KSP_DEV)\English\GameData\*" /E /Y
+xcopy "$(SolutionDir)Output\*" "$(KSP_DEV)\GameData\*" /E /Y
 del "$(SolutionDir)Release\*" /Q
 xcopy "$(SolutionDir)Documents\*" "$(SolutionDir)Release\Documents\*" /E /Y
 "C:\Program Files\7-Zip\7z.exe" a -tzip -mx3 "$(SolutionDir)Release\$(ProjectName)-@(VersionNumber).zip" "$(SolutionDir)Output\*"

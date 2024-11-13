@@ -174,6 +174,10 @@ namespace KerbalEngineer.Helpers {
         public static string ToPressure(double value) {
             return value.ToString((value < 100000.0) ? (value < 10000.0) ? (value < 100.0) ? (Math.Abs(value) < double.Epsilon) ? "N0" : "N3" : "N2" : "N1" : "N0") + "kN/m²";
         }
+        
+        public static string ToDensity(double value) {
+            return value.ToString((value < 100000.0) ? (value < 10000.0) ? (value < 100.0) ? (Math.Abs(value) < double.Epsilon) ? "N0" : "N3" : "N2" : "N1" : "N0") + "kg/m³";
+        }
 
         public static string ToRate(double value, int decimals = -9000) {
             if (decimals < 0) decimals = 1;

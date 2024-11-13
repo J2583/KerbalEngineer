@@ -29,6 +29,7 @@ using KerbalEngineer.Extensions;
 
 namespace KerbalEngineer.Flight.Readouts.Surface
 {
+    using CommNet.Network;
     using UnityEngine;
 
     public class AtmosphericProcessor : IUpdatable, IUpdateRequest
@@ -106,6 +107,21 @@ namespace KerbalEngineer.Flight.Readouts.Surface
         ///     Gets the dynamic pressure of the active vessel.
         /// </summary>
         public static double DynamicPressure { get; private set; }
+        
+        /// <summary>
+        ///     Gets the air density at the active vessel's location.
+        /// </summary>
+        public static double AirDensity { get; private set; }
+
+        /// <summary>
+        ///     Gets the air density at the active vessel's location as a percentage of sea level density for the current celestial body.
+        /// </summary>
+        public static double AirDensityPercent { get; private set; }
+
+        /// <summary>
+        ///     Gets the air density at the active vessel's location as a percentage of Kerbin sea level density.
+        /// </summary>
+        public static double AirDensityKerbinPercent { get; private set; }
 
         #endregion
 
@@ -137,16 +153,21 @@ namespace KerbalEngineer.Flight.Readouts.Surface
                 }
                 else
                 {
-                    var m = FlightGlobals.ActiveVessel.parts.Sum(part => PartExtensions.GetWetMass(part)) * 1000.0;
+                    var vessel = FlightGlobals.ActiveVessel;
+
+                    var m = vessel.parts.Sum(part => PartExtensions.GetWetMass(part)) * 1000.0;
                     var g = FlightGlobals.getGeeForceAtPosition(FlightGlobals.ship_position).magnitude;
-                    var a = FlightGlobals.ActiveVessel.parts.Sum(part => part.DragCubes.AreaDrag) * PhysicsGlobals.DragCubeMultiplier;
-                    var p = FlightGlobals.ActiveVessel.atmDensity;
+                    var a = vessel.parts.Sum(part => part.DragCubes.AreaDrag) * PhysicsGlobals.DragCubeMultiplier;
+                    var p = vessel.atmDensity;
                     var c = PhysicsGlobals.DragMultiplier;
 
                     TerminalVelocity = Math.Sqrt((2.0 * m * g) / (p * a * c));
 
-                    StaticPressure = FlightGlobals.ActiveVessel.staticPressurekPa;
-                    DynamicPressure = FlightGlobals.ActiveVessel.dynamicPressurekPa;
+                    StaticPressure = vessel.staticPressurekPa;
+                    DynamicPressure = vessel.dynamicPressurekPa;
+                    AirDensity = p;
+                    AirDensityPercent = p / GetASLDensity(vessel.mainBody);
+                    AirDensityKerbinPercent = p / GetASLDensity(FlightGlobals.Bodies.Find(b => b.bodyName == "Kerbin"));
                 }
 
                 Efficiency = FlightGlobals.ship_srfSpeed / TerminalVelocity;
@@ -209,6 +230,11 @@ namespace KerbalEngineer.Flight.Readouts.Surface
             {
                 MyLogger.Exception(ex, "AtmosphericProcessor->CheckAeroMods");
             }
+        }
+
+        private double GetASLDensity(CelestialBody body) {
+            return body.atmDensityASL;
+            //return body.GetDensity(body.atmospherePressureSeaLevel, body.atmosphereTemperatureSeaLevel); //This is slightly different for some reason, probably doesn't matter though. We could use body.GetDensity(body.GetFullTemperature(pos)) to display density relative to that of the surface below us though.
         }
 
         #endregion

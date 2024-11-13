@@ -73,7 +73,12 @@ namespace KerbalEngineer.Extensions
         {
             return Units.ToPressure(value);
         }
-
+        
+        public static string ToDensity(this double value, int decimals = -9000)
+        {
+            return Units.ToDensity(value);
+        }
+        
         public static string ToRate(this double value, int decimals = -9000)
         {
             return Units.ToRate(value, decimals);

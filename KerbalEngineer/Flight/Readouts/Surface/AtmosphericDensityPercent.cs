@@ -22,22 +22,21 @@ namespace KerbalEngineer.Flight.Readouts.Surface
     using Extensions;
     using Sections;
 
-    public class AtmosphericPressure : ReadoutModule
+    public class AtmosphericDensityPercent : ReadoutModule
     {
-        public AtmosphericPressure()
+        public AtmosphericDensityPercent()
         {
-            Name = "Atmos. Pressure";
-            ShortName = "Pressure";
+            Name = "Atmos. Density Percent";
+            ShortName = "Density";
             Category = ReadoutCategory.GetCategory("Surface");
-            HelpString = "Displays the current atmospheric pressure.";
+            HelpString = "Displays the current atmospheric density as a percentage of standard sea-level density for the current celestial body. Actual sea-level density varies with temperature, so this may be higher or lower than 100% when at sea level.";
             IsDefault = false;
         }
 
         public override void Draw(Unity.Flight.ISectionModule section)
         {
-            if (AtmosphericProcessor.ShowDetails)
-            {
-                DrawLine(AtmosphericProcessor.StaticPressure.ToPressure(section.IsHud ? HudDecimalPlaces : DecimalPlaces), section);
+            if (AtmosphericProcessor.ShowDetails) {
+                DrawLine(AtmosphericProcessor.AirDensityPercent.ToPercent(section.IsHud ? HudDecimalPlaces : DecimalPlaces), section);
             }
         }
 

@@ -110,6 +110,9 @@ namespace KerbalEngineer.Flight.Readouts {
                 readouts.Add(new TerminalVelocity());
                 readouts.Add(new AtmosphericEfficiency());
                 readouts.Add(new AtmosphericPressure());
+                readouts.Add(new AtmosphericDensity());
+                readouts.Add(new AtmosphericDensityPercent());
+                readouts.Add(new AtmosphericDensityKerbinPercent());
                 readouts.Add(new Biome());
                 readouts.Add(new Situation());
                 readouts.Add(new Slope());
@@ -154,6 +157,7 @@ namespace KerbalEngineer.Flight.Readouts {
                 readouts.Add(new AngleOfAttack());
                 readouts.Add(new AngleOfSideslip());
                 readouts.Add(new AngleOfDisplacement());
+                readouts.Add(new Course());
                 readouts.Add(new Heading());
                 readouts.Add(new Pitch());
                 readouts.Add(new Roll());
